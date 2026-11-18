@@ -16,7 +16,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { CloudinaryUploader } from '../CloudinaryUploader';
+import { CPanelUploader } from '../CPanelUploader';
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
 import { getOptimizedImageUrl } from '../../lib/cloudinary';
@@ -147,7 +147,7 @@ export function AdminProductsTab() {
       return;
     }
     if (form.images.length === 0) {
-      showToast('Upload at least 1 product image (Cloudinary or URL)', 'error');
+      showToast('Upload at least 1 product image (hosting or URL)', 'error');
       return;
     }
 
@@ -504,18 +504,18 @@ export function AdminProductsTab() {
                 />
               </div>
 
-              {/* Images via Cloudinary */}
+              {/* Product gallery images saved to cPanel hosting */}
               <div>
                 <label className="block text-xs font-medium text-steel mb-1.5">
-                  Product Gallery Images (Cloudinary)
+                  Product Gallery Images (Hosting)
                 </label>
-                <CloudinaryUploader
+                <CPanelUploader
                   images={form.images}
                   onChange={(imgs) => setForm({ ...form, images: imgs })}
-                  folder="samtobpc/products"
+                  folder="products"
                   multiple
                   maxFiles={12}
-                  label="Upload Product Images"
+                  label="Upload Product Images to Hosting"
                 />
               </div>
 
