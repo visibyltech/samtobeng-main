@@ -5,7 +5,6 @@ import { useToast } from '../../context/ToastContext';
 import {
   BankAccountInfo,
   BnplSettings,
-  CloudinarySettings,
   DeliveryTier,
   FaqItem,
   LegalDocument,
@@ -22,7 +21,6 @@ export function AdminSettingsTab() {
   const [bankTransfer, setBankTransfer] = useState<BankAccountInfo>(settings.bankTransferAccount);
   const [saveToBuy, setSaveToBuy] = useState<BankAccountInfo>(settings.saveToBuyAccount);
   const [bnpl, setBnpl] = useState<BnplSettings>(settings.bnpl);
-  const [cloudinary, setCloudinary] = useState<CloudinarySettings>(settings.cloudinary);
   const [storefront, setStorefront] = useState<StorefrontSettings>(settings.storefront);
   const [stores, setStores] = useState<StoreLocation[]>(settings.stores);
   const [faqs, setFaqs] = useState<FaqItem[]>(settings.faqs);
@@ -37,7 +35,6 @@ export function AdminSettingsTab() {
     setBankTransfer(settings.bankTransferAccount);
     setSaveToBuy(settings.saveToBuyAccount);
     setBnpl(settings.bnpl);
-    setCloudinary(settings.cloudinary);
     setStorefront(settings.storefront);
     setStores(settings.stores);
     setFaqs(settings.faqs);
@@ -148,98 +145,6 @@ export function AdminSettingsTab() {
             onChange={(e) => setSaveToBuy({ ...saveToBuy, instructions: e.target.value })}
             placeholder="Save-to-Buy instructions"
             className="w-full border border-line rounded-xl px-3 py-2 text-xs"
-          />
-        </section>
-      </div>
-
-      {/* BNPL & Cloudinary Config */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="bg-white border border-line rounded-2xl p-6 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-semibold text-base">
-              Buy Now, Pay Later (Klump / Replacement Adapter)
-            </h2>
-            <button
-              type="button"
-              disabled={savingKey === 'bnpl'}
-              onClick={() => saveSection('bnpl', bnpl, 'BNPL Settings')}
-              className="inline-flex items-center gap-1 bg-ink text-paper px-3.5 py-1.5 rounded-full text-xs font-medium hover:bg-signal"
-            >
-              <Save size={13} /> Save
-            </button>
-          </div>
-          <select
-            value={bnpl.activeProvider}
-            onChange={(e) =>
-              setBnpl({
-                ...bnpl,
-                activeProvider: e.target.value as 'none' | 'klump' | 'custom',
-              })
-            }
-            className="w-full border border-line rounded-xl px-3 py-2 text-xs bg-white"
-          >
-            <option value="none">None — Klump Shut Down (Unavailable Notice)</option>
-            <option value="klump">Legacy Klump (Shows Shut Down Notice)</option>
-            <option value="custom">Custom Replacement BNPL Provider</option>
-          </select>
-          <input
-            type="text"
-            value={bnpl.providerLabel}
-            onChange={(e) => setBnpl({ ...bnpl, providerLabel: e.target.value })}
-            placeholder="Provider Label (e.g. CredPal / PayQart)"
-            className="w-full border border-line rounded-xl px-3 py-2 text-xs"
-          />
-          <input
-            type="text"
-            value={bnpl.publicKey}
-            onChange={(e) => setBnpl({ ...bnpl, publicKey: e.target.value })}
-            placeholder="Provider Public Key"
-            className="w-full border border-line rounded-xl px-3 py-2 text-xs font-data"
-          />
-          <input
-            type="url"
-            value={bnpl.checkoutUrl}
-            onChange={(e) => setBnpl({ ...bnpl, checkoutUrl: e.target.value })}
-            placeholder="Provider Checkout URL (https://...)"
-            className="w-full border border-line rounded-xl px-3 py-2 text-xs"
-          />
-          <textarea
-            rows={2}
-            value={bnpl.klumpShutDownNotice}
-            onChange={(e) => setBnpl({ ...bnpl, klumpShutDownNotice: e.target.value })}
-            placeholder="Unavailable notice shown when BNPL is not active"
-            className="w-full border border-line rounded-xl px-3 py-2 text-xs"
-          />
-        </section>
-
-        <section className="bg-white border border-line rounded-2xl p-6 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-semibold text-base">Cloudinary Image Storage</h2>
-            <button
-              type="button"
-              disabled={savingKey === 'cloudinary'}
-              onClick={() => saveSection('cloudinary', cloudinary, 'Cloudinary Settings')}
-              className="inline-flex items-center gap-1 bg-ink text-paper px-3.5 py-1.5 rounded-full text-xs font-medium hover:bg-signal"
-            >
-              <Save size={13} /> Save
-            </button>
-          </div>
-          <p className="text-xs text-steel">
-            Configure your Cloudinary Cloud Name and Unsigned Upload Preset here (or via server environment variables for signed uploads).
-          </p>
-          <input
-            type="text"
-            value={cloudinary.cloudName}
-            onChange={(e) => setCloudinary({ ...cloudinary, cloudName: e.target.value })}
-            placeholder="Cloudinary Cloud Name"
-            className="w-full border border-line rounded-xl px-3 py-2 text-xs font-data"
-          />
-          <input
-            type="text"
-            value={cloudinary.uploadPreset}
-            onChange={(e) => setCloudinary({ ...cloudinary, uploadPreset: e.target.value })}
-            placeholder="Unsigned Upload Preset (if not using server API secret)"
-            className="w-full border border-line rounded-xl px-3 py-2 text-xs font-data"
           />
         </section>
       </div>
