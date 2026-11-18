@@ -1,0 +1,8 @@
+{
+  "name": "SAMTOB P&C",
+  "description": "New & UK used laptops, phones and gadgets — tested, warrantied, and delivered to your door anywhere in Nigeria.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

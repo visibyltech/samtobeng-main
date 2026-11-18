@@ -1,0 +1,242 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Catalog product stored in Firestore for laptops, phones, and gadgets.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "slug": { "type": "string", "maxLength": 220, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "brand": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "category": { "type": "string", "minLength": 1, "maxLength": 80, "pattern": "^[a-z0-9_\\-]+$" },
+        "condition": { "type": "string", "enum": ["new", "uk-used"] },
+        "price": { "type": "number" },
+        "oldPrice": { "type": "number" },
+        "discountPercent": { "type": "number" },
+        "stock": { "type": "number" },
+        "description": { "type": "string", "maxLength": 5000 },
+        "specs": { "type": "array" },
+        "images": { "type": "array" },
+        "featured": { "type": "boolean" },
+        "flashSale": { "type": "boolean" },
+        "published": { "type": "boolean" },
+        "tags": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "slug", "name", "brand", "category", "condition", "price", "stock", "description", "images", "featured", "flashSale", "published", "createdAt", "updatedAt"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Storefront product category.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "slug": { "type": "string", "maxLength": 80, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "description": { "type": "string", "maxLength": 300 },
+        "order": { "type": "number" },
+        "active": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "slug", "name", "order", "active", "updatedAt"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Customer account profile containing contact details.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "email": { "type": "string", "format": "email", "maxLength": 180 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "address": { "type": "string", "maxLength": 500 },
+        "role": { "type": "string", "enum": ["customer", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "role", "createdAt", "updatedAt"]
+    },
+    "Cart": {
+      "title": "Cart",
+      "description": "Authenticated customer persistent shopping cart.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "items": { "type": "array" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "items", "updatedAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer order placed via Bank Transfer or BNPL.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "orderNumber": { "type": "string", "maxLength": 40 },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "email": { "type": "string", "format": "email", "maxLength": 180 },
+        "phone": { "type": "string", "minLength": 5, "maxLength": 30 },
+        "address": { "type": "string", "minLength": 3, "maxLength": 500 },
+        "region": { "type": "string", "enum": ["ibadan", "southwest", "eastern", "northern"] },
+        "deliveryMethod": { "type": "string", "enum": ["door-step", "same-day", "park-pickup"] },
+        "paymentMethod": { "type": "string", "enum": ["bank-transfer", "klump", "bnpl", "save-to-buy"] },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "deliveryFee": { "type": "number" },
+        "total": { "type": "number" },
+        "paymentStatus": { "type": "string", "enum": ["pending", "awaiting_verification", "verified", "rejected", "failed"] },
+        "orderStatus": { "type": "string", "enum": ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"] },
+        "receiptUrl": { "type": "string", "maxLength": 1000 },
+        "senderAccountName": { "type": "string", "maxLength": 120 },
+        "senderBankName": { "type": "string", "maxLength": 120 },
+        "paymentReference": { "type": "string", "maxLength": 120 },
+        "adminNote": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "orderNumber", "userId", "customerName", "email", "phone", "address", "region", "deliveryMethod", "paymentMethod", "items", "subtotal", "deliveryFee", "total", "paymentStatus", "orderStatus", "createdAt", "updatedAt"]
+    },
+    "SaveToBuyPlan": {
+      "title": "SaveToBuyPlan",
+      "description": "Customer Save-to-Buy layaway plan for a single device.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "customerEmail": { "type": "string", "format": "email", "maxLength": 180 },
+        "customerPhone": { "type": "string", "maxLength": 30 },
+        "productId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "productSlug": { "type": "string", "maxLength": 220 },
+        "productName": { "type": "string", "maxLength": 240 },
+        "productImage": { "type": "string", "maxLength": 1000 },
+        "targetAmount": { "type": "number" },
+        "amountSaved": { "type": "number" },
+        "frequency": { "type": "string", "enum": ["weekly", "monthly"] },
+        "durationMonths": { "type": "number" },
+        "totalPayments": { "type": "number" },
+        "installmentAmount": { "type": "number" },
+        "paymentsCompleted": { "type": "number" },
+        "sourceAccountName": { "type": "string", "maxLength": 120 },
+        "sourceBankName": { "type": "string", "maxLength": 120 },
+        "status": { "type": "string", "enum": ["active", "completed", "cancelled"] },
+        "eligibleForDelivery": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "customerName", "customerEmail", "productId", "productSlug", "productName", "productImage", "targetAmount", "amountSaved", "frequency", "durationMonths", "totalPayments", "installmentAmount", "paymentsCompleted", "status", "eligibleForDelivery", "createdAt", "updatedAt"]
+    },
+    "SaveToBuyInstallment": {
+      "title": "SaveToBuyInstallment",
+      "description": "Installment payment and proof of transfer submitted under a Save-to-Buy plan.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "planId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "amount": { "type": "number" },
+        "senderAccountName": { "type": "string", "maxLength": 120 },
+        "senderBankName": { "type": "string", "maxLength": 120 },
+        "reference": { "type": "string", "maxLength": 120 },
+        "receiptUrl": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["pending_verification", "verified", "rejected"] },
+        "adminNote": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "planId", "userId", "amount", "status", "createdAt", "updatedAt"]
+    },
+    "PaymentRecord": {
+      "title": "PaymentRecord",
+      "description": "Payment verification and receipt record linked to an order or Save-to-Buy plan.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "orderId": { "type": "string", "maxLength": 128 },
+        "planId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["bank-transfer", "save-to-buy", "bnpl"] },
+        "provider": { "type": "string", "maxLength": 80 },
+        "amount": { "type": "number" },
+        "reference": { "type": "string", "maxLength": 120 },
+        "senderAccountName": { "type": "string", "maxLength": 120 },
+        "senderBankName": { "type": "string", "maxLength": 120 },
+        "receiptUrl": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["pending_verification", "verified", "rejected"] },
+        "adminNote": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "type", "provider", "amount", "status", "createdAt", "updatedAt"]
+    },
+    "SiteSetting": {
+      "title": "SiteSetting",
+      "description": "Public storefront configuration, payment account numbers, BNPL config, delivery rates, stores, FAQs, testimonials, and legal documents.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "payload": { "type": "object" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "payload", "updatedAt"]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized administrator registry document keyed by Firebase Auth UID.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "format": "email", "maxLength": 180 },
+        "addedBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Storefront product catalog documents."
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Product category definitions."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Customer profile PII isolated by owner UID or admin."
+    },
+    "/users/{userId}/cart/{cartId}": {
+      "schema": { "$ref": "#/entities/Cart" },
+      "description": "Persistent shopping cart for signed-in customer."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Customer orders isolated by owner UID or admin."
+    },
+    "/save_to_buy_plans/{planId}": {
+      "schema": { "$ref": "#/entities/SaveToBuyPlan" },
+      "description": "Save-to-Buy layaway plans isolated by owner UID or admin."
+    },
+    "/save_to_buy_plans/{planId}/installments/{installmentId}": {
+      "schema": { "$ref": "#/entities/SaveToBuyInstallment" },
+      "description": "Installment proof submissions under a Save-to-Buy plan."
+    },
+    "/payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/PaymentRecord" },
+      "description": "Payment verification and receipt records."
+    },
+    "/site_settings/{settingId}": {
+      "schema": { "$ref": "#/entities/SiteSetting" },
+      "description": "Admin-managed storefront content, bank accounts, BNPL, stores, FAQs, testimonials, and legal pages."
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Authorized admin UIDs."
+    }
+  }
+}
