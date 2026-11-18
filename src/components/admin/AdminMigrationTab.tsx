@@ -1,17 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { doc, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore';
-import {
-  CloudUpload,
-  Database,
-  Download,
-  FileJson,
-  FileSpreadsheet,
-  RefreshCw,
-  Upload,
-} from 'lucide-react';
+import { Database, Download, FileJson, FileSpreadsheet, RefreshCw, Upload } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
-import { isCloudinaryUrl, migrateRemoteUrlToCloudinary } from '../../lib/cloudinary';
 import { db } from '../../lib/firebase';
 import { OperationType, handleFirestoreError } from '../../lib/firestoreError';
 import { clampStr, computeDiscountPercent, slugify } from '../../lib/format';
@@ -67,12 +58,6 @@ export function AdminMigrationTab() {
   const csvInputRef = useRef<HTMLInputElement>(null);
 
   const [importing, setImporting] = useState(false);
-  const [migratingImages, setMigratingImages] = useState(false);
-  const [migrationLog, setMigrationLog] = useState<string>('');
-
-  const legacyImageProducts = products.filter((p) =>
-    (p.images || []).some((img) => img.startsWith('http') && !isCloudinaryUrl(img))
-  );
 
   async function handleReseed() {
     if (
@@ -269,62 +254,6 @@ export function AdminMigrationTab() {
     }
   }
 
-  async function handleMigrateImagesToCloudinary() {
-    if (legacyImageProducts.length === 0) {
-      showToast('All product images are already on Cloudinary or local assets', 'info');
-      return;
-    }
-
-    setMigratingImages(true);
-    let successCount = 0;
-    let failCount = 0;
-
-    try {
-      for (const p of legacyImageProducts) {
-        setMigrationLog(`Migrating ${p.name}... (${successCount + 1}/${legacyImageProducts.length})`);
-        const nextImages: string[] = [];
-        let changed = false;
-
-        for (const imgUrl of p.images || []) {
-          if (imgUrl.startsWith('http') && !isCloudinaryUrl(imgUrl)) {
-            try {
-              const cloudUrl = await migrateRemoteUrlToCloudinary(
-                imgUrl,
-                'samtobpc/products',
-                settings.cloudinary
-              );
-              nextImages.push(cloudUrl);
-              changed = true;
-            } catch {
-              nextImages.push(imgUrl);
-              failCount++;
-            }
-          } else {
-            nextImages.push(imgUrl);
-          }
-        }
-
-        if (changed) {
-          await updateDoc(doc(db, 'products', p.id), {
-            images: nextImages,
-            updatedAt: serverTimestamp(),
-          });
-          successCount++;
-        }
-      }
-      setMigrationLog(
-        `Completed: updated ${successCount} products (${failCount} failed image fetches).`
-      );
-      showToast(`Migrated images on ${successCount} products`, 'success');
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Migration failed';
-      setMigrationLog(msg);
-      showToast(msg, 'error');
-    } finally {
-      setMigratingImages(false);
-    }
-  }
-
   return (
     <div className="space-y-6">
       {/* Catalog Seeding & Backup */}
@@ -359,33 +288,10 @@ export function AdminMigrationTab() {
           </div>
         </section>
 
-        {/* Cloudinary Batch Image Migration */}
-        <section className="bg-white border border-line rounded-2xl p-6 space-y-4">
-          <div className="flex items-center gap-2">
-            <CloudUpload size={18} className="text-signal" />
-            <h2 className="font-display font-semibold text-base">
-              Cloudinary Batch Image Migrator
-            </h2>
-          </div>
-          <p className="text-xs text-steel leading-relaxed">
-            {legacyImageProducts.length} products currently reference external/legacy image URLs. Click below to transfer them into your configured Cloudinary account automatically.
-          </p>
-          <button
-            type="button"
-            onClick={handleMigrateImagesToCloudinary}
-            disabled={migratingImages || legacyImageProducts.length === 0}
-            className="inline-flex items-center gap-1.5 bg-ink text-paper px-4 py-2 rounded-full text-xs font-medium hover:bg-signal transition-colors disabled:opacity-50"
-          >
-            <CloudUpload size={14} />
-            {migratingImages
-              ? 'Migrating...'
-              : `Migrate ${legacyImageProducts.length} Products to Cloudinary`}
-          </button>
-          {migrationLog && (
-            <p className="text-xs font-data text-steel bg-paper border border-line rounded-xl px-3 py-2">
-              {migrationLog}
-            </p>
-          )}
+        {/* Legacy product image links remain in place; new uploads go to cPanel hosting. */}
+        <section className="bg-white border border-line rounded-2xl p-6 space-y-3">
+          <h2 className="font-display font-semibold text-base">Product Image Storage</h2>
+          <p className="text-xs text-steel leading-relaxed">New images uploaded through the product editor are saved on this website's cPanel hosting. Existing catalog image links are preserved and are not automatically copied or deleted.</p>
         </section>
       </div>
 
@@ -457,10 +363,7 @@ export function AdminMigrationTab() {
             <code>samtobeng@gmail.com</code>.
           </p>
           <p>
-            2. <strong>Cloudinary</strong>: Set <code>VITE_CLOUDINARY_CLOUD_NAME</code> +{' '}
-            <code>VITE_CLOUDINARY_UPLOAD_PRESET</code> (unsigned) or server{' '}
-            <code>CLOUDINARY_CLOUD_NAME</code> + <code>CLOUDINARY_API_KEY</code> +{' '}
-            <code>CLOUDINARY_API_SECRET</code> (signed) in environment variables, or configure unsigned values under Website &amp; Payment Settings.
+            2. <strong>Product Images</strong>: New uploads are stored in the site's <code>uploads/products</code> folder. Existing image URLs remain preserved in Firestore.
           </p>
           <p>
             3. <strong>Production Build</strong>: Run <code>npm run build</code> then{' '}
