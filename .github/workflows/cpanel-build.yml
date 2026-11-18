@@ -1,0 +1,26 @@
+name: Build cPanel production package
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Production build
+        run: bun run build
+      - name: Package cPanel files
+        run: cd dist && zip -r ../SAMTOB-cPanel.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SAMTOB-cPanel-build
+          path: SAMTOB-cPanel.zip
+          retention-days: 7
