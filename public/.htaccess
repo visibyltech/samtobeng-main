@@ -1,0 +1,19 @@
+Options -Indexes
+
+# Do not execute scripts from image upload directories.
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<FilesMatch "\.(php|phtml|php[0-9])$">
+  Require all denied
+</FilesMatch>
+# Keep upload folders browseable as direct image URLs, but disable directory listing.
+# SPA routing: preserve real files, directories, and the PHP upload API; otherwise use index.html.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^api/upload-image\.php$ - [L]
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  RewriteRule ^ index.html [L]
+</IfModule>
