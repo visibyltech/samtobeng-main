@@ -10,7 +10,7 @@ export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 export const BOOTSTRAPPED_ADMIN_EMAIL = 'samtobeng@gmail.com';
-export const BOOTSTRAPPED_ADMIN_EMAILS = ['samtobeng@gmail.com', 'usitakatelvin@gmail.com'];
+export const BOOTSTRAPPED_ADMIN_EMAILS = ['samtobeng@gmail.com'];
 
 export async function testConnection(): Promise<boolean> {
   try {
