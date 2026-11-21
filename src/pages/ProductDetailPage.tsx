@@ -193,9 +193,9 @@ export function ProductDetailPage() {
           <span className="text-xs uppercase tracking-widest text-steel font-data">
             {product.brand}
           </span>
-          <h1 className="font-display font-bold text-3xl mt-1">{product.name}</h1>
+          <h1 className="font-display font-bold text-2xl sm:text-3xl mt-1 leading-tight">{product.name}</h1>
 
-          <div className="flex items-baseline gap-3 mt-4">
+          <div className="flex items-baseline flex-wrap gap-3 mt-3">
             <span className="font-data font-bold text-2xl">{formatNaira(product.price)}</span>
             {product.oldPrice && product.oldPrice > product.price && (
               <span className="font-data text-steel line-through text-base">
@@ -208,29 +208,7 @@ export function ProductDetailPage() {
             <StockSignalBars stock={product.stock} />
           </div>
 
-          {product.description && (
-            <p className="text-steel mt-5 leading-relaxed whitespace-pre-line">
-              {product.description}
-            </p>
-          )}
-
-          {product.specs && product.specs.length > 0 && (
-            <div className="mt-6 rounded-2xl border border-line bg-white overflow-hidden">
-              <div className="px-4 py-2.5 border-b border-line bg-cloud text-xs font-data uppercase tracking-wider text-steel">
-                Specifications
-              </div>
-              <div className="divide-y divide-line">
-                {product.specs.map((spec, idx) => (
-                  <div key={`${spec.label}-${idx}`} className="flex justify-between gap-4 px-4 py-2.5 text-sm">
-                    <span className="text-steel">{spec.label}</span>
-                    <span className="font-data text-ink text-right">{spec.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="mt-7 space-y-4">
+          <div className="mt-5 rounded-2xl border border-line bg-white p-4 sm:p-5 space-y-4">
             {product.stock <= 0 ? (
               <div className="rounded-full bg-ink/5 text-steel px-6 py-3.5 text-sm font-medium text-center">
                 Currently out of stock — chat us on WhatsApp for restock alerts
@@ -264,13 +242,13 @@ export function ProductDetailPage() {
                   </span>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <motion.button
                     type="button"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={handleAddToCart}
-                    className="relative overflow-hidden inline-flex items-center gap-2 border border-ink px-6 py-3.5 rounded-full font-medium text-sm hover:border-signal hover:text-signal transition-colors bg-white"
+                    className="relative overflow-hidden inline-flex items-center gap-2 border border-ink px-3 py-3 rounded-full font-medium text-xs sm:text-sm hover:border-signal hover:text-signal transition-colors bg-white"
                   >
                     {addedFeedback ? (
                       <span className="flex items-center gap-2 text-mint">
@@ -288,13 +266,13 @@ export function ProductDetailPage() {
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.96 }}
                     onClick={handleBuyNow}
-                    className="inline-flex items-center gap-2 bg-signal text-white px-6 py-3.5 rounded-full font-medium text-sm hover:brightness-110 transition-[filter] glow-signal"
+                    className="inline-flex items-center gap-2 bg-signal text-white px-3 py-3 rounded-full font-medium text-xs sm:text-sm hover:brightness-110 transition-[filter] glow-signal"
                   >
                     Buy Now
                   </motion.button>
                 </div>
 
-                <div className="pt-1 max-w-xs">
+                <div className="pt-1 w-full">
                   <SaveToBuyModal
                     productId={product.id}
                     productSlug={product.slug}
@@ -306,6 +284,30 @@ export function ProductDetailPage() {
               </>
             )}
           </div>
+
+          {product.description && (
+            <p className="text-steel mt-5 leading-relaxed whitespace-pre-line">
+              {product.description}
+            </p>
+          )}
+
+          {product.specs && product.specs.length > 0 && (
+            <div className="mt-6 rounded-2xl border border-line bg-white overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-line bg-cloud text-xs font-data uppercase tracking-wider text-steel">
+                Specifications
+              </div>
+              <div className="divide-y divide-line">
+                {product.specs.map((spec, idx) => (
+                  <div key={`${spec.label}-${idx}`} className="flex justify-between gap-4 px-4 py-2.5 text-sm">
+                    <span className="text-steel">{spec.label}</span>
+                    <span className="font-data text-ink text-right">{spec.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+
 
           <div className="mt-8 space-y-3 border-t border-line pt-6">
             <div className="flex items-start gap-3 text-sm">
