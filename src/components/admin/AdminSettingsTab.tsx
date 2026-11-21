@@ -5,6 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import {
   BankAccountInfo,
   BnplSettings,
+  CloudinarySettings,
   DeliveryTier,
   FaqItem,
   LegalDocument,
@@ -21,6 +22,7 @@ export function AdminSettingsTab() {
   const [bankTransfer, setBankTransfer] = useState<BankAccountInfo>(settings.bankTransferAccount);
   const [saveToBuy, setSaveToBuy] = useState<BankAccountInfo>(settings.saveToBuyAccount);
   const [bnpl, setBnpl] = useState<BnplSettings>(settings.bnpl);
+  const [cloudinary, setCloudinary] = useState<CloudinarySettings>(settings.cloudinary);
   const [storefront, setStorefront] = useState<StorefrontSettings>(settings.storefront);
   const [stores, setStores] = useState<StoreLocation[]>(settings.stores);
   const [faqs, setFaqs] = useState<FaqItem[]>(settings.faqs);
@@ -35,6 +37,7 @@ export function AdminSettingsTab() {
     setBankTransfer(settings.bankTransferAccount);
     setSaveToBuy(settings.saveToBuyAccount);
     setBnpl(settings.bnpl);
+    setCloudinary(settings.cloudinary);
     setStorefront(settings.storefront);
     setStores(settings.stores);
     setFaqs(settings.faqs);
@@ -58,6 +61,41 @@ export function AdminSettingsTab() {
 
   return (
     <div className="space-y-6">
+
+      {/* Cloudinary Image Storage */}
+      <section className="bg-white border border-line rounded-2xl p-6 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-display font-semibold text-base">Cloudinary Image Storage</h2>
+          <button
+            type="button"
+            disabled={savingKey === 'cloudinary'}
+            onClick={() => saveSection('cloudinary', cloudinary, 'Cloudinary Settings')}
+            className="inline-flex items-center gap-1 bg-ink text-paper px-3.5 py-1.5 rounded-full text-xs font-medium hover:bg-signal disabled:opacity-50"
+          >
+            <Save size={13} /> Save
+          </button>
+        </div>
+        <p className="text-xs text-steel leading-relaxed">
+          Enter your Cloudinary cloud name and unsigned upload preset. For signed uploads, add CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET as encrypted Vercel environment variables; never put the API secret here.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <input
+            type="text"
+            value={cloudinary.cloudName}
+            onChange={(e) => setCloudinary({ ...cloudinary, cloudName: e.target.value.trim() })}
+            placeholder="Cloudinary Cloud Name"
+            className="w-full border border-line rounded-xl px-3 py-2 text-xs"
+          />
+          <input
+            type="text"
+            value={cloudinary.uploadPreset}
+            onChange={(e) => setCloudinary({ ...cloudinary, uploadPreset: e.target.value.trim() })}
+            placeholder="Unsigned Upload Preset"
+            className="w-full border border-line rounded-xl px-3 py-2 text-xs"
+          />
+        </div>
+      </section>
+
       {/* Bank Accounts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section className="bg-white border border-line rounded-2xl p-6 space-y-3">
