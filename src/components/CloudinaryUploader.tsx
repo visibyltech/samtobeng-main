@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { ImagePlus, Loader2, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { getOptimizedImageUrl, isCloudinaryUrl, uploadImageToCloudinary } from '../lib/cloudinary';
 
@@ -22,6 +23,7 @@ export function CloudinaryUploader({
   label = 'Upload Images to Cloudinary',
 }: CloudinaryUploaderProps) {
   const { settings } = useStore();
+  const { user, isAdmin } = useAuth();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -31,12 +33,16 @@ export function CloudinaryUploader({
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+    if (!user || !isAdmin) {
+      setErrorMsg('Administrator sign-in is required to upload images.');
+      return;
+    }
     setErrorMsg(null);
     setUploading(true);
 
     try {
       const remaining = maxFiles - images.length;
-      const toUpload = multiple ? files.slice(0, Math.max(1, remaining)) : [files[0]];
+      const toUpload = multiple ? files.slice(0, Math.max(0, remaining)) : [files[0]];
       const uploadedUrls: string[] = [];
 
       for (const file of toUpload) {
