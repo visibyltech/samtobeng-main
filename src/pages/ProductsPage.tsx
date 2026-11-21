@@ -7,7 +7,7 @@ import { useStore } from '../context/StoreContext';
 
 export function ProductsPage() {
   const { publishedProducts, categories, loading, needsCatalogSeed, seeding, seedOriginalCatalog } = useStore();
-  const { isAdmin, loginWithGoogle } = useAuth();
+  const { isAdmin } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeCategory = searchParams.get('category') || '';
@@ -363,7 +363,7 @@ export function ProductsPage() {
           ) : (
             <button
               type="button"
-              onClick={() => loginWithGoogle()}
+              onClick={() => { window.location.href = "/account/login"; }}
               className="shrink-0 bg-ink text-paper px-5 py-2.5 rounded-full text-sm font-medium"
             >
               Admin Sign In
