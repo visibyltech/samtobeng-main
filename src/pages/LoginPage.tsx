@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Lock, Mail, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
@@ -17,6 +17,8 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -94,16 +96,33 @@ export function LoginPage() {
           </label>
           <label className="block space-y-1.5">
             <span className="text-sm font-medium">Password</span>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
-              minLength={6} autoComplete={isRegister ? 'new-password' : 'current-password'}
-              className="w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-signal" placeholder="Enter your password" />
+            <span className="relative block">
+              <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required
+                minLength={6} autoComplete={isRegister ? 'new-password' : 'current-password'}
+                className="w-full rounded-xl border border-line px-4 pr-12 py-3 text-sm outline-none focus:border-signal" placeholder="Enter your password" />
+              <button type="button" onClick={() => setShowPassword((value) => !value)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-steel hover:text-ink"
+                >
+                {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+              </button>
+            </span>
           </label>
           {isRegister && (
             <label className="block space-y-1.5">
               <span className="text-sm font-medium">Confirm password</span>
-              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required
-                minLength={6} autoComplete="new-password"
-                className="w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-signal" placeholder="Confirm your password" />
+              <span className="relative block">
+                <input type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required
+                  minLength={6} autoComplete="new-password"
+                  className="w-full rounded-xl border border-line px-4 pr-12 py-3 text-sm outline-none focus:border-signal" placeholder="Confirm your password" />
+                <button type="button" onClick={() => setShowConfirmPassword((value) => !value)}
+                  aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  aria-pressed={showConfirmPassword}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-steel hover:text-ink">
+                  {showConfirmPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+                </button>
+              </span>
             </label>
           )}
           {!isRegister && (
