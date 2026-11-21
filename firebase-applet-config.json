@@ -1,12 +1,10 @@
 {
-  "projectId": "gen-lang-client-0087310115",
-  "appId": "1:510287427601:web:fc2325b35f3e54bb5859b0",
-  "apiKey": "AIzaSyCpOVV-TqEoDkn0xYFy0Pzz6Z0q1OACt9c",
-  "authDomain": "gen-lang-client-0087310115.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-0467241a-7085-4e26-b059-53b1071b8559",
-  "storageBucket": "gen-lang-client-0087310115.firebasestorage.app",
-  "messagingSenderId": "510287427601",
-  "measurementId": "",
-  "oAuthClientId": "510287427601-r8m9r832gn930b56m3f85g42782tj7pc.apps.googleusercontent.com",
-  "recaptchaSiteKey": ""
+  "apiKey": "AIzaSyATyXBE0ILzszWJYXmxkxhlfE-N5K15LKs",
+  "authDomain": "samtob-main.firebaseapp.com",
+  "projectId": "samtob-main",
+  "storageBucket": "samtob-main.firebasestorage.app",
+  "messagingSenderId": "692278178753",
+  "appId": "1:692278178753:web:93899d726b5408d99f3540",
+  "measurementId": "G-81WWC35RCF",
+  "firestoreDatabaseId": "(default)"
 }
