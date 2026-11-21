@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 
 const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'gen-lang-client-0087310115';
+const FIRESTORE_DATABASE_ID = process.env.FIRESTORE_DATABASE_ID || 'ai-studio-0467241a-7085-4e26-b059-53b1071b8559';
 const ADMIN_EMAILS = new Set(['samtobeng@gmail.com', 'usitakatelvin@gmail.com']);
 
 function decodeJsonPart(part: string) {
@@ -40,7 +41,17 @@ async function verifyBootstrapAdmin(req: any): Promise<boolean> {
       cert,
       Buffer.from(parts[2], 'base64url')
     );
-    return valid && ADMIN_EMAILS.has(String(claims.email || '').toLowerCase());
+    if (!valid || claims.email_verified !== true) return false;
+    const email = String(claims.email || '').toLowerCase();
+    if (ADMIN_EMAILS.has(email)) return true;
+
+    const uid = String(claims.user_id || claims.sub || '');
+    if (!uid) return false;
+    const adminDocument = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/${FIRESTORE_DATABASE_ID}/documents/admins/${encodeURIComponent(uid)}`,
+      { headers: { Authorization: `Bearer ${match[1]}` } }
+    );
+    return adminDocument.ok;
   } catch {
     return false;
   }
