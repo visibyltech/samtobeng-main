@@ -10,7 +10,7 @@ function decodeJsonPart(part: string) {
 async function verifyBootstrapAdmin(req: any): Promise<boolean> {
   try {
     const authHeader = String(req.headers?.authorization || '');
-    const match = authHeader.match(/^Bearer\\s+(.+)$/i);
+    const match = authHeader.match(/^Bearer\s+(.+)$/i);
     if (!match) return false;
     const parts = match[1].split('.');
     if (parts.length !== 3) return false;
