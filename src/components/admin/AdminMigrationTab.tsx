@@ -7,6 +7,7 @@ import { db } from '../../lib/firebase';
 import { OperationType, handleFirestoreError } from '../../lib/firestoreError';
 import { clampStr, computeDiscountPercent, slugify } from '../../lib/format';
 import { Product } from '../../types';
+import { migrateRemoteUrlToCloudinary } from '../../lib/cloudinary';
 
 function downloadTextFile(filename: string, content: string, mime: string) {
   const blob = new Blob([content], { type: mime });
@@ -58,6 +59,8 @@ export function AdminMigrationTab() {
   const csvInputRef = useRef<HTMLInputElement>(null);
 
   const [importing, setImporting] = useState(false);
+  const [migrating, setMigrating] = useState(false);
+  const [migrationProgress, setMigrationProgress] = useState({ completed: 0, total: 0 });
 
   async function handleReseed() {
     if (
@@ -69,6 +72,70 @@ export function AdminMigrationTab() {
     }
     const count = await seedOriginalCatalog(true);
     showToast(`Seeded ${count} original products into Firestore`, 'success');
+  }
+
+
+  async function handleCloudinaryMigration() {
+    const candidates = products.filter((product) =>
+      Array.isArray(product.images) && product.images.some((url) => url.includes('supabase.co'))
+    );
+    const total = candidates.reduce(
+      (sum, product) => sum + product.images.filter((url) => url.includes('supabase.co')).length,
+      0
+    );
+    if (total === 0) {
+      showToast('No legacy Supabase product images remain to migrate.', 'success');
+      return;
+    }
+    if (!window.confirm(`Move ${total} legacy product images from the old storage service to Cloudinary? This updates the product image links in Firebase and does not delete the old files.`)) {
+      return;
+    }
+
+    setMigrating(true);
+    setMigrationProgress({ completed: 0, total });
+    const queue = [...candidates];
+    let completed = 0;
+    let failed = false;
+
+    const worker = async () => {
+      while (!failed) {
+        const product = queue.shift();
+        if (!product) return;
+        try {
+          const nextImages = [...(product.images || [])];
+          for (let index = 0; index < nextImages.length; index += 1) {
+            const imageUrl = nextImages[index];
+            if (!imageUrl.includes('supabase.co')) continue;
+            nextImages[index] = await migrateRemoteUrlToCloudinary(
+              imageUrl,
+              'samtobpc/products',
+              settings.cloudinary
+            );
+            await updateDoc(doc(db, 'products', product.id), {
+              images: nextImages,
+              updatedAt: serverTimestamp(),
+            });
+            completed += 1;
+            setMigrationProgress({ completed, total });
+          }
+        } catch (error) {
+          failed = true;
+          throw error;
+        }
+      }
+    };
+
+    try {
+      const results = await Promise.allSettled([worker(), worker(), worker()]);
+      const failure = results.find((result) => result.status === 'rejected');
+      if (failure && failure.status === 'rejected') throw failure.reason;
+      showToast(`Migrated ${completed} of ${total} product images to Cloudinary`, 'success');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown migration error';
+      showToast(`Migration paused at ${completed}/${total}: ${message}`, 'error');
+    } finally {
+      setMigrating(false);
+    }
   }
 
   function handleExportJson() {
@@ -288,10 +355,25 @@ export function AdminMigrationTab() {
           </div>
         </section>
 
-        {/* Legacy product image links remain in place; new uploads go to cPanel hosting. */}
         <section className="bg-white border border-line rounded-2xl p-6 space-y-3">
-          <h2 className="font-display font-semibold text-base">Product Image Storage</h2>
-          <p className="text-xs text-steel leading-relaxed">New images uploaded through the product editor are saved on this website's cPanel hosting. Existing catalog image links are preserved and are not automatically copied or deleted.</p>
+          <h2 className="font-display font-semibold text-base">Cloudinary Product Image Migration</h2>
+          <p className="text-xs text-steel leading-relaxed">
+            New product uploads use Cloudinary. The recovered catalog still contains legacy image links; migrate them here after Cloudinary has been configured in Website &amp; Payment Settings.
+          </p>
+          <button
+            type="button"
+            onClick={handleCloudinaryMigration}
+            disabled={migrating || products.length === 0}
+            className="inline-flex items-center gap-1.5 bg-ink text-paper px-4 py-2 rounded-full text-xs font-medium hover:bg-signal disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={migrating ? 'animate-spin' : ''} />
+            {migrating ? `Migrating ${migrationProgress.completed}/${migrationProgress.total}...` : 'Migrate Legacy Images to Cloudinary'}
+          </button>
+          {migrationProgress.total > 0 && (
+            <p className="text-xs text-steel font-data">
+              {migrationProgress.completed} of {migrationProgress.total} images migrated. You can safely run this again to continue any remaining images.
+            </p>
+          )}
         </section>
       </div>
 
@@ -363,7 +445,7 @@ export function AdminMigrationTab() {
             <code>samtobeng@gmail.com</code>.
           </p>
           <p>
-            2. <strong>Product Images</strong>: New uploads are stored in the site's <code>uploads/products</code> folder. Existing image URLs remain preserved in Firestore.
+            2. <strong>Product Images</strong>: New uploads and migrated legacy catalog images are stored in Cloudinary; product records remain in Firestore.
           </p>
           <p>
             3. <strong>Production Build</strong>: Run <code>npm run build</code> then{' '}
