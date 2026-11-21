@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   User,
+  createUserWithEmailAndPassword,
   onAuthStateChanged,
-  signInWithPopup,
+  sendEmailVerification,
+  signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
 import {
@@ -12,12 +14,7 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import {
-  BOOTSTRAPPED_ADMIN_EMAILS,
-  auth,
-  db,
-  googleProvider,
-} from '../lib/firebase';
+import { BOOTSTRAPPED_ADMIN_EMAILS, auth, db } from '../lib/firebase';
 import { OperationType, handleFirestoreError } from '../lib/firestoreError';
 import { clampStr } from '../lib/format';
 import { UserProfile } from '../types';
@@ -28,7 +25,9 @@ interface AuthContextValue {
   authReady: boolean;
   loggedIn: boolean;
   isAdmin: boolean;
-  loginWithGoogle: () => Promise<UserProfile | null>;
+  loginWithEmail: (email: string, password: string) => Promise<UserProfile | null>;
+  registerWithEmail: (name: string, email: string, password: string) => Promise<void>;
+  resendVerificationEmail: () => Promise<void>;
   logout: () => Promise<void>;
   updateCustomerProfile: (data: { name: string; phone: string; address: string }) => Promise<void>;
 }
@@ -42,20 +41,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authReady, setAuthReady] = useState(false);
 
   async function syncProfile(firebaseUser: User): Promise<UserProfile | null> {
+    if (!firebaseUser.emailVerified) {
+      setProfile(null);
+      setIsAdmin(false);
+      return null;
+    }
+
     const userRef = doc(db, 'users', firebaseUser.uid);
     let adminFlag =
-      Boolean(firebaseUser.emailVerified) &&
-      Boolean(
-        firebaseUser.email &&
-          BOOTSTRAPPED_ADMIN_EMAILS.includes(firebaseUser.email.toLowerCase())
-      );
+      Boolean(firebaseUser.email) &&
+      BOOTSTRAPPED_ADMIN_EMAILS.includes(firebaseUser.email.toLowerCase());
 
     if (!adminFlag) {
       try {
         const adminSnap = await getDoc(doc(db, 'admins', firebaseUser.uid));
-        if (adminSnap.exists()) {
-          adminFlag = true;
-        }
+        adminFlag = adminSnap.exists();
       } catch {
         adminFlag = false;
       }
@@ -66,9 +66,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const snap = await getDoc(userRef);
       if (snap.exists()) {
         const data = snap.data() as UserProfile;
-        setProfile({ ...data, role: adminFlag ? 'admin' : data.role });
-        return { ...data, role: adminFlag ? 'admin' : data.role };
+        const effective = { ...data, role: adminFlag ? 'admin' : data.role };
+        setProfile(effective);
+        return effective;
       }
+
       const newProfile: UserProfile = {
         uid: firebaseUser.uid,
         name: clampStr(firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Customer', 120),
@@ -80,18 +82,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updatedAt: serverTimestamp(),
       };
       await setDoc(userRef, newProfile);
-      const effective: UserProfile = { ...newProfile, role: adminFlag ? 'admin' : 'customer' };
+      const effective = { ...newProfile, role: adminFlag ? 'admin' as const : 'customer' as const };
       setProfile(effective);
       return effective;
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, `users/${firebaseUser.uid}`);
+      return null;
     }
   }
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
-      if (firebaseUser) {
+      if (firebaseUser?.emailVerified) {
         try {
           await syncProfile(firebaseUser);
         } catch (err) {
@@ -106,9 +109,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsub();
   }, []);
 
-  async function loginWithGoogle(): Promise<UserProfile | null> {
-    const cred = await signInWithPopup(auth, googleProvider);
-    return syncProfile(cred.user);
+  async function loginWithEmail(email: string, password: string): Promise<UserProfile | null> {
+    const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
+    await credential.user.reload();
+    if (!credential.user.emailVerified) {
+      await sendEmailVerification(credential.user);
+      await signOut(auth);
+      throw new Error('Please verify your email first. We have sent a new verification link to your inbox.');
+    }
+    return syncProfile(credential.user);
+  }
+
+  async function registerWithEmail(name: string, email: string, password: string): Promise<void> {
+    const credential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+    if (name.trim()) {
+      const { updateProfile } = await import('firebase/auth');
+      await updateProfile(credential.user, { displayName: clampStr(name.trim(), 120) });
+    }
+    await sendEmailVerification(credential.user);
+    await signOut(auth);
+  }
+
+  async function resendVerificationEmail() {
+    if (!user) throw new Error('Please sign in again to resend the verification email.');
+    await sendEmailVerification(user);
   }
 
   async function logout() {
@@ -128,34 +152,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updatedAt: serverTimestamp(),
       };
       await updateDoc(doc(db, 'users', user.uid), payload);
-      setProfile((prev) =>
-        prev
-          ? {
-              ...prev,
-              name: payload.name,
-              phone: payload.phone,
-              address: payload.address,
-            }
-          : prev
-      );
+      setProfile((prev) => prev ? { ...prev, name: payload.name, phone: payload.phone, address: payload.address } : prev);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, path);
     }
   }
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        authReady,
-        loggedIn: Boolean(user),
-        isAdmin,
-        loginWithGoogle,
-        logout,
-        updateCustomerProfile,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user, profile, authReady, loggedIn: Boolean(user), isAdmin,
+      loginWithEmail, registerWithEmail, resendVerificationEmail, logout, updateCustomerProfile,
+    }}>
       {children}
     </AuthContext.Provider>
   );
