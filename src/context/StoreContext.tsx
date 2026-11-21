@@ -188,15 +188,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setSeeding(true);
     try {
       const existingProducts = await getDocs(collection(db, 'products'));
-      if (!forceOverwrite && existingProducts.size > 0) {
-        return existingProducts.size;
-      }
-
+      const existingIds = new Set(existingProducts.docs.map((snapshot) => snapshot.id));
       const normalized = normalizeOriginalProducts();
-      // Commit in batches of 400 (Firestore batch limit is 500)
-      for (let i = 0; i < normalized.length; i += 400) {
+      const productsToWrite = forceOverwrite
+        ? normalized
+        : normalized.filter((product) => !existingIds.has(product.id));
+
+      // Add missing original products without overwriting existing store edits.
+      for (let i = 0; i < productsToWrite.length; i += 400) {
         const batch = writeBatch(db);
-        const chunk = normalized.slice(i, i + 400);
+        const chunk = productsToWrite.slice(i, i + 400);
         for (const p of chunk) {
           const ref = doc(db, 'products', p.id);
           batch.set(ref, {
@@ -248,7 +249,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         await settingsBatch.commit();
       }
 
-      return normalized.length;
+      return productsToWrite.length;
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'products');
     } finally {
@@ -256,9 +257,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Automatically seed Firestore on first Admin login if catalog is empty
+  // On first Admin login, add any missing products from the recovered catalog.
   useEffect(() => {
-    if (authReady && isAdmin && !loading && products.length === 0 && !autoSeededRef.current) {
+    if (authReady && isAdmin && !loading && !autoSeededRef.current) {
       autoSeededRef.current = true;
       seedOriginalCatalog(false).catch((err) => {
         console.error('Auto-seed error:', err);
