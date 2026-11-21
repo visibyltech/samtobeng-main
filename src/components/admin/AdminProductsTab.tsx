@@ -16,7 +16,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { CPanelUploader } from '../CPanelUploader';
+import { CloudinaryUploader } from '../CloudinaryUploader';
 import { useStore } from '../../context/StoreContext';
 import { useToast } from '../../context/ToastContext';
 import { getOptimizedImageUrl } from '../../lib/cloudinary';
@@ -507,15 +507,15 @@ export function AdminProductsTab() {
               {/* Product gallery images saved to cPanel hosting */}
               <div>
                 <label className="block text-xs font-medium text-steel mb-1.5">
-                  Product Gallery Images (Hosting)
+                  Product Gallery Images (Cloudinary)
                 </label>
-                <CPanelUploader
+                <CloudinaryUploader
                   images={form.images}
                   onChange={(imgs) => setForm({ ...form, images: imgs })}
-                  folder="products"
+                  folder="samtobpc/products"
                   multiple
                   maxFiles={12}
-                  label="Upload Product Images to Hosting"
+                  label="Upload Product Images to Cloudinary"
                 />
               </div>
 
