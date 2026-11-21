@@ -52,7 +52,7 @@ const categoryIconMap: Record<string, typeof Laptop> = {
 
 export function HomePage() {
   const { publishedProducts, categories, settings, loading, needsCatalogSeed, seeding, seedOriginalCatalog } = useStore();
-  const { isAdmin, loginWithGoogle } = useAuth();
+  const { isAdmin } = useAuth();
 
   const { storefront, testimonials } = settings;
   const flashSaleProducts = publishedProducts.filter((p) => p.flashSale).slice(0, 4);
@@ -71,7 +71,7 @@ export function HomePage() {
               'radial-gradient(600px circle at 50% 30%, rgba(228,20,27,0.12), transparent 70%)',
           }}
         />
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-20 lg:py-28 text-center relative">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 text-center relative">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -87,18 +87,18 @@ export function HomePage() {
               {storefront.heroEyebrow}
             </span>
 
-            <h1 className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl leading-[1.05] tracking-tight">
+            <h1 className="font-display font-bold text-2xl sm:text-4xl lg:text-5xl leading-tight tracking-tight">
               <span className="block">A strong signal for</span>
               <span className="block">
                 your next <span className="text-gradient-signal">{storefront.heroTitleHighlight}</span>.
               </span>
             </h1>
 
-            <p className="mt-6 text-steel text-lg max-w-xl mx-auto leading-relaxed">
+            <p className="mt-3 text-steel text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
               {storefront.heroSubtitle}
             </p>
 
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <div className="mt-5 flex flex-wrap justify-center gap-3">
               <Link
                 to="/products"
                 className="inline-flex items-center gap-2 bg-ink text-paper px-6 py-3.5 rounded-full font-medium text-sm hover:bg-signal transition-colors glow-signal"
@@ -118,15 +118,15 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Brand Marquee */}
-      <div className="relative overflow-hidden border-y border-line bg-white py-6">
+      {/* Compact brand strip */}
+      <div className="relative overflow-hidden border-y border-line bg-white py-2.5">
         <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
         <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
         <div className="animate-marquee gap-16">
           {[...storefront.brandsMarquee, ...storefront.brandsMarquee].map((brand, i) => (
             <span
               key={`${brand}-${i}`}
-              className="font-display font-bold text-xl sm:text-2xl text-ink/20 tracking-tight whitespace-nowrap select-none"
+              className="font-display font-bold text-sm sm:text-base text-ink/20 tracking-tight whitespace-nowrap select-none"
             >
               {brand}
             </span>
@@ -136,12 +136,12 @@ export function HomePage() {
 
       {/* Stats Strip */}
       <section className="border-b border-line bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 grid grid-cols-4 gap-2 sm:gap-6 text-center">
           <div>
-            <p className="font-display font-bold text-3xl">
+            <p className="font-display font-bold text-xl sm:text-2xl">
               <AnimatedCounter value={storefront.stats.physicalStores} />
             </p>
-            <p className="text-xs text-steel mt-1 font-data uppercase tracking-wider">
+            <p className="text-[9px] sm:text-xs text-steel mt-1 font-data uppercase tracking-wider">
               Physical Stores
             </p>
           </div>
@@ -196,7 +196,7 @@ export function HomePage() {
             ) : (
               <button
                 type="button"
-                onClick={() => loginWithGoogle()}
+                onClick={() => { window.location.href = "/account/login"; }}
                 className="shrink-0 bg-ink text-paper px-5 py-2.5 rounded-full text-sm font-medium hover:bg-signal transition-colors"
               >
                 Admin Sign In to Migrate
@@ -207,11 +207,11 @@ export function HomePage() {
       )}
 
       {/* Categories */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <span className="text-xs font-data uppercase tracking-widest text-steel">
           Category
         </span>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-3">
           {categories
             .filter((c) => c.active)
             .slice(0, 6)
@@ -221,12 +221,12 @@ export function HomePage() {
                 <Link
                   key={cat.id}
                   to={`/products?category=${cat.slug}`}
-                  className="group flex flex-col items-center justify-center gap-3 rounded-2xl border border-line bg-white p-6 hover:border-signal/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center"
+                  className="group min-h-[112px] sm:min-h-[140px] flex flex-col items-center justify-center gap-2 rounded-xl sm:rounded-2xl border border-line bg-white p-2.5 sm:p-4 hover:border-signal/50 hover:shadow-lg transition-all duration-300 text-center"
                 >
-                  <div className="p-3 rounded-full bg-slate-50 group-hover:bg-signal/10 transition-colors">
-                    <Icon className="w-6 h-6 text-steel group-hover:text-signal transition-colors" />
+                  <div className="p-2 sm:p-3 rounded-full bg-slate-50 group-hover:bg-signal/10 transition-colors">
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-steel group-hover:text-signal transition-colors" />
                   </div>
-                  <h3 className="font-display font-bold text-lg group-hover:text-signal transition-colors">
+                  <h3 className="font-display font-bold text-xs sm:text-base group-hover:text-signal transition-colors">
                     {cat.name}
                   </h3>
                 </Link>
