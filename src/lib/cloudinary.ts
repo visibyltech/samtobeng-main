@@ -1,4 +1,5 @@
 import { CloudinarySettings } from '../types';
+import { auth } from './firebase';
 
 export interface CloudinaryUploadResult {
   url: string;
@@ -56,6 +57,11 @@ export async function uploadImageToCloudinary(
     );
   }
 
+  const idToken = await auth.currentUser?.getIdToken();
+  if (!idToken) throw new Error('Sign in with an authorized administrator account before uploading images.');
+
+  const effectiveCloudName = serverCfg.signedEnabled && serverCfg.cloudName ? serverCfg.cloudName : cloudName;
+  let uploadCloudName = effectiveCloudName;
   const form = new FormData();
   form.append('file', file);
   form.append('folder', folder);
@@ -63,13 +69,14 @@ export async function uploadImageToCloudinary(
   if (serverCfg.signedEnabled) {
     const signRes = await fetch('/api/cloudinary/sign', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
       body: JSON.stringify({ folder }),
     });
     const signData = await signRes.json();
     if (!signRes.ok) {
       throw new Error(signData.error || 'Failed to obtain Cloudinary upload signature.');
     }
+    uploadCloudName = signData.cloudName || uploadCloudName;
     form.append('api_key', signData.apiKey);
     form.append('timestamp', String(signData.timestamp));
     form.append('signature', signData.signature);
@@ -82,7 +89,7 @@ export async function uploadImageToCloudinary(
   }
 
   const uploadRes = await fetch(
-    `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`,
+    `https://api.cloudinary.com/v1_1/${encodeURIComponent(uploadCloudName)}/image/upload`,
     {
       method: 'POST',
       body: form,
@@ -109,9 +116,11 @@ export async function migrateRemoteUrlToCloudinary(
   if (sourceUrl.includes('res.cloudinary.com')) {
     return sourceUrl;
   }
+  const idToken = await auth.currentUser?.getIdToken();
+  if (!idToken) throw new Error('Sign in with an authorized administrator account before migrating images.');
   const res = await fetch('/api/cloudinary/migrate-url', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
     body: JSON.stringify({
       sourceUrl,
       folder,
